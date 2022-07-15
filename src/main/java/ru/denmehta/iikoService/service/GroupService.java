@@ -1,6 +1,5 @@
 package ru.denmehta.iikoService.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.Group;
@@ -11,9 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 
-@Slf4j
 @Service
-    public class GroupService implements GroupServiceInterface  {
+    public class GroupService   {
 
         final
         GroupRepository groupRepository;
@@ -23,7 +21,6 @@ import java.util.Optional;
     }
 
 
-    @Override
     public Group getById(String id) {
         Optional<Group> optionalGroup = groupRepository.findById(id);
         if (optionalGroup.isPresent()) {
@@ -32,21 +29,17 @@ import java.util.Optional;
         return null;
     }
 
-    @Override
     public void save(Group group) {
     }
 
-    @Override
     public void delete(String id) {
 
     }
 
-    @Override
     public List<Group> getAll() {
         return groupRepository.findAll();
     }
 
-    @Override
     public List<Group> getAllSiteDisplayedAndSite(Site site) {
         return groupRepository.findByIsSiteDisplayAndSite(true, site);
     }

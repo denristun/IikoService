@@ -6,7 +6,7 @@ import ru.denmehta.iikoService.models.Size;
 import ru.denmehta.iikoService.repository.SizeRepository;
 
 @Service
-public class SizeService implements  SizeServiceInterface{
+public class SizeService {
 
 
     final SizeRepository sizeRepository;
@@ -16,12 +16,10 @@ public class SizeService implements  SizeServiceInterface{
         this.sizeRepository = sizeRepository;
     }
 
-    @Override
     public void save(Size size) {
     this.sizeRepository.save(size);
     }
 
-    @Override
     public void delete(String id) {
 
     }

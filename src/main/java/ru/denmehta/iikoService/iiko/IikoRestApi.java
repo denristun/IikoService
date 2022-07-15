@@ -1,29 +1,24 @@
 package ru.denmehta.iikoService.iiko;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import ru.denmehta.iikoService.iiko.request.AccessTokenRequest;
-import ru.denmehta.iikoService.iiko.request.CustomerInfoRequest;
-import ru.denmehta.iikoService.iiko.request.GetMenuRequest;
-import ru.denmehta.iikoService.iiko.request.OrganizationsRequest;
+import ru.denmehta.iikoService.iiko.classes.Order;
+import ru.denmehta.iikoService.iiko.handler.IikoResponseErrorHandler;
+import ru.denmehta.iikoService.iiko.request.*;
 import ru.denmehta.iikoService.iiko.response.*;
 
-
-@Slf4j
 @Service
-public class IikoRestApi implements IikoRestApiInterface {
+public class IikoRestApi implements RestApiInterface {
 
     private final RestTemplate restTemplate;
     private final String IIKO_URL = "https://api-ru.iiko.services/api/1";
 
     public IikoRestApi() {
-        this.restTemplate = new RestTemplateBuilder().build();
+        this.restTemplate = new RestTemplateBuilder().errorHandler(new IikoResponseErrorHandler()).build();
     }
 
     @Override
@@ -33,13 +28,13 @@ public class IikoRestApi implements IikoRestApiInterface {
     }
 
     @Override
-    public ResponseEntity<OrganizationsResponse> getOrganizations(String token){
+    public ResponseEntity<OrganizationsResponse> getOrganizations(String token) {
         OrganizationsRequest request = new OrganizationsRequest();
         request.setReturnAdditionalInfo(true);
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
         HttpEntity<OrganizationsRequest> entity = new HttpEntity<>(request, headers);
-        return restTemplate.postForEntity(IIKO_URL + "/organizations",  entity, OrganizationsResponse.class);
+        return restTemplate.postForEntity(IIKO_URL + "/organizations", entity, OrganizationsResponse.class);
     }
 
     @Override
@@ -52,18 +47,31 @@ public class IikoRestApi implements IikoRestApiInterface {
         GetMenuRequest request = new GetMenuRequest(organizationId);
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
-        HttpEntity<GetMenuRequest> entity = new HttpEntity<GetMenuRequest>(request, headers);
-        return restTemplate.postForEntity(IIKO_URL + "/nomenclature",  entity, GetMenuResponse.class);
+        HttpEntity<GetMenuRequest> entity = new HttpEntity<>(request, headers);
+        return restTemplate.postForEntity(IIKO_URL + "/nomenclature", entity, GetMenuResponse.class);
 
     }
 
     @Override
-    public ResponseEntity<CustomerInfoResponse> getCustomer(String token, String phone) {
-        CustomerInfoRequest request = new CustomerInfoRequest(phone);
+    public ResponseEntity<CustomerInfoResponse> getCustomer(String token, String organizationId, String phone) {
+        CustomerInfoRequest request = new CustomerInfoRequest(organizationId, phone);
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
-        HttpEntity<CustomerInfoRequest> entity = new HttpEntity<CustomerInfoRequest>(request, headers);
-        return restTemplate.postForEntity(IIKO_URL + "/get_customer",  entity, CustomerInfoResponse.class);
+        HttpEntity<CustomerInfoRequest> httpEntity = new HttpEntity<>(request, headers);
+        return restTemplate.postForEntity(IIKO_URL + "/loyalty/iiko/get_customer", httpEntity, CustomerInfoResponse.class);
+    }
+
+    @Override
+    public ResponseEntity<CreateDeliveryResponse> createDelivery(String token, String organizationId,
+                                                                 String terminalGroupId, Order order) {
+
+        CreateDeliveryRequest request = new CreateDeliveryRequest(organizationId, order);
+        request.setTerminalGroupId(terminalGroupId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<CreateDeliveryRequest> httpEntity = new HttpEntity<>(request, headers);
+        return restTemplate.postForEntity(IIKO_URL + "/deliveries/create", httpEntity, CreateDeliveryResponse.class);
+
     }
 
 

@@ -1,6 +1,5 @@
 package ru.denmehta.iikoService.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.Organization;
@@ -10,9 +9,8 @@ import ru.denmehta.iikoService.repository.OrganizationRepository;
 import java.util.List;
 import java.util.Optional;
 
-@Slf4j
 @Service
-public class OrganizationService implements OrganizationServiceInterface{
+public class OrganizationService {
 
     final OrganizationRepository organizationRepository;
 
@@ -21,7 +19,6 @@ public class OrganizationService implements OrganizationServiceInterface{
         this.organizationRepository = organizationRepository;
     }
 
-    @Override
     public Organization getById(String id) {
 
         Optional<Organization> optionalOrganization = organizationRepository.findById(id);
@@ -31,14 +28,12 @@ public class OrganizationService implements OrganizationServiceInterface{
         return null;
     }
 
-    @Override
     public void save(Organization organization) {
         organizationRepository.save(organization);
 
     }
 
 
-    @Override
     public void delete(String id) {
 
     }

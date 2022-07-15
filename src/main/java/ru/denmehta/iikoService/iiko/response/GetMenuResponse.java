@@ -7,7 +7,7 @@ import ru.denmehta.iikoService.models.Product;
 
 import java.util.List;
 
-public class GetMenuResponse extends IikoResponse {
+public class GetMenuResponse extends IikoBaseResponse {
 
     private List<Group> groups;
 

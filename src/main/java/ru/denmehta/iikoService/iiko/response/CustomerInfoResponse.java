@@ -2,7 +2,7 @@ package ru.denmehta.iikoService.iiko.response;
 
 import java.util.Date;
 
-public class CustomerInfoResponse extends  IikoResponse{
+public class CustomerInfoResponse extends IikoBaseResponse {
 
     private String id;
 

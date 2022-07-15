@@ -1,9 +1,8 @@
 package ru.denmehta.iikoService.iiko.response;
 
-import lombok.Getter;
 
 
-public class AccessTokenResponse extends IikoResponse  {
+public class AccessTokenResponse extends IikoBaseResponse {
 
     private  String token;
 

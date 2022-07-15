@@ -10,8 +10,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.denmehta.iikoService.models.Site;
-import ru.denmehta.iikoService.service.CustomerServiceInterface;
-import ru.denmehta.iikoService.service.SiteServiceInterface;
+import ru.denmehta.iikoService.service.CustomerService;
+import ru.denmehta.iikoService.service.SiteService;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -26,11 +26,11 @@ public class JwtTokenProvider {
     @Value("${jwt.token.expired}")
     private long validityInMilliseconds;
 
-    private CustomerServiceInterface customerService;
-    private SiteServiceInterface siteService;
+    private CustomerService customerService;
+    private SiteService siteService;
 
     @Autowired
-    public JwtTokenProvider(CustomerServiceInterface customerService, SiteServiceInterface siteService) {
+    public JwtTokenProvider(CustomerService customerService, SiteService siteService) {
         this.customerService = customerService;
         this.siteService = siteService;
     }

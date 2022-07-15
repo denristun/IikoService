@@ -2,9 +2,10 @@ package ru.denmehta.iikoService.iiko.request;
 
 public class CustomerInfoRequest {
 
-    public CustomerInfoRequest(String phone) {
-        this.phone = phone;
+    public CustomerInfoRequest(String organizationId, String phone) {
         this.type = "phone";
+        this.phone = phone;
+        this.organizationId = organizationId;
     }
 
     private String type;
@@ -14,6 +15,16 @@ public class CustomerInfoRequest {
     private String cardTrack;
 
     private String cardNumber;
+
+    private String organizationId;
+
+    public String getOrganizationId() {
+        return organizationId;
+    }
+
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
+    }
 
     public String getType() {
         return type;

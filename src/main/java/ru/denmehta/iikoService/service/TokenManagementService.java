@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
-public class TokenManagementService implements TokenManagementServiceInterface {
+public class TokenManagementService  {
 
 
     final SiteService siteService;
@@ -33,12 +33,10 @@ public class TokenManagementService implements TokenManagementServiceInterface {
         }
     }
 
-    @Override
     public String getToken(Site site) {
         return this.tokens.get(site.getId());
     }
 
-    @Override
     public Map<String, String> getTokens() {
         return this.tokens;
     }

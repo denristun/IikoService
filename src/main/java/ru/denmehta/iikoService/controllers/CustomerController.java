@@ -6,16 +6,13 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.denmehta.iikoService.models.Customer;
-import ru.denmehta.iikoService.models.FavouriteProduct;
 import ru.denmehta.iikoService.models.Product;
 import ru.denmehta.iikoService.models.Site;
-import ru.denmehta.iikoService.request.AddFavouriteProductRequestBody;
+import ru.denmehta.iikoService.request.FavouriteProductRequestBody;
 import ru.denmehta.iikoService.request.UpdateCustomerRequestBody;
 import ru.denmehta.iikoService.response.RestApiException;
 import ru.denmehta.iikoService.security.jwt.JwtTokenProvider;
-import ru.denmehta.iikoService.service.CustomerServiceInterface;
-import ru.denmehta.iikoService.service.ProductServiceInterface;
-import ru.denmehta.iikoService.service.SiteServiceInterface;
+import ru.denmehta.iikoService.service.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Objects;
@@ -25,14 +22,14 @@ import java.util.Set;
 @RequestMapping("/api/v1/customer")
 public class CustomerController {
 
-    private final SiteServiceInterface siteService;
-    private final ProductServiceInterface productService;
-    private final CustomerServiceInterface customerService;
+    private final SiteService siteService;
+    private final ProductService productService;
+    private final CustomerService customerService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CustomerController(SiteServiceInterface siteService, ProductServiceInterface productService,
-                              CustomerServiceInterface customerService,
+    public CustomerController( SiteService siteService, ProductService productService,
+                              CustomerService customerService,
                               JwtTokenProvider jwtTokenProvider) {
         this.siteService = siteService;
         this.productService = productService;
@@ -67,7 +64,7 @@ public class CustomerController {
 
 
     @RequestMapping(path = "/favourite", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<Customer>  addFavouriteProduct(@RequestBody AddFavouriteProductRequestBody addFavouriteProductRequestBody,
+    public ResponseEntity<Customer>  addFavouriteProduct(@RequestBody FavouriteProductRequestBody addFavouriteProductRequestBody,
                                                    HttpServletRequest request) {
 
         if (Objects.isNull(addFavouriteProductRequestBody.getProductId())) {
@@ -77,13 +74,34 @@ public class CustomerController {
         Customer customer = getCustomerFromRequest(request);
         Product product = productService.getById(addFavouriteProductRequestBody.getProductId());
 
-        Set<FavouriteProduct> favouriteProducts = customer.getFavouriteProducts();
-        favouriteProducts.add(new FavouriteProduct(product, customer));
-
+        Set<Product> favouriteProducts = customer.getFavouriteProducts();
+        favouriteProducts.add(product);
         customer.setFavouriteProducts(favouriteProducts);
         customerService.save(customer);
         return new ResponseEntity<Customer>(customer, HttpStatus.OK);
     }
+
+
+    @RequestMapping(path = "/favourite", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE )
+    public ResponseEntity<Customer>  deleteFavouriteProduct(@RequestBody FavouriteProductRequestBody addFavouriteProductRequestBody,
+                                                         HttpServletRequest request) {
+
+        if (Objects.isNull(addFavouriteProductRequestBody.getProductId())) {
+            throw new RestApiException(HttpStatus.BAD_REQUEST, "productId is required");
+        }
+
+        Customer customer = getCustomerFromRequest(request);
+        Product product = productService.getById(addFavouriteProductRequestBody.getProductId());
+
+        Set<Product> favouriteProducts = customer.getFavouriteProducts();
+        favouriteProducts.remove(product);
+        customer.setFavouriteProducts(favouriteProducts);
+        customerService.save(customer);
+        return new ResponseEntity<Customer>(customer, HttpStatus.OK);
+    }
+
+
+
 
     private Customer getCustomerFromRequest(HttpServletRequest request) {
         String domain = jwtTokenProvider.getSite(request).getDomain();

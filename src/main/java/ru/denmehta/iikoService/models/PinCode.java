@@ -1,19 +1,12 @@
 package ru.denmehta.iikoService.models;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 import java.util.Date;
 import java.util.UUID;
 
 @Entity
 @Table(name = "pinCode")
-@Getter
-@Setter
-@ToString
 public class PinCode extends BaseEntity {
 
     public PinCode(String phone, String code) {

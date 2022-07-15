@@ -2,12 +2,9 @@ package ru.denmehta.iikoService.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
 import javax.persistence.*;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -50,7 +47,7 @@ public class Product extends BaseEntity {
     private String fullNameEnglish;
 
     @Column()
-    private String[] imageLinks;
+    private String imageLinks;
 
     @Column()
     private boolean isDeleted;
@@ -91,6 +88,7 @@ public class Product extends BaseEntity {
     @Column()
     private String groupId;
 
+
     @Column()
     private String type;
 
@@ -118,27 +116,27 @@ public class Product extends BaseEntity {
     @Column()
     private boolean canSetOpenPrice;
 
-
     @Column()
     private Date createdAt;
 
-    @ManyToOne(targetEntity = Group.class)
+    @ManyToOne(targetEntity = Group.class, fetch = FetchType.LAZY)
     @JsonIgnoreProperties("products")
     @JoinColumn(name = "parentGroupId")
     private Group group;
-
-    @OneToOne(mappedBy = "product")
-    private FavouriteProduct favouriteProduct;
 
 
     @OneToMany(mappedBy = "product", targetEntity = SizePrice.class)
     private Set<SizePrice> sizePrices;
 
-    public String[] getImageLinks() {
+    @ManyToMany(mappedBy = "favouriteProducts")
+    private Set<Customer> customers = new HashSet<>();
+
+
+    public String getImageLinks() {
         return imageLinks;
     }
 
-    public void setImageLinks(String[] imageLinks) {
+    public void setImageLinks(String imageLinks) {
         this.imageLinks = imageLinks;
     }
 
@@ -418,12 +416,11 @@ public class Product extends BaseEntity {
         return Objects.nonNull(group) ? group.getId() : null;
     }
 
-    public void setGroup(Group group) {
-        this.group = group;
-    }
+//    public void setGroup(Group group) {
+//        this.group = group;
+//    }
 
-    public Set<SizePrice> getSizePrices() {
-        return sizePrices;
-    }
-
+//    public Set<SizePrice> getSizePrices() {
+//        return sizePrices;
+//    }
 }

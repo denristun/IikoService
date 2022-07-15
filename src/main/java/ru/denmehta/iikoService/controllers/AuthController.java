@@ -4,30 +4,31 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Bucket4j;
 import io.github.bucket4j.Refill;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import ru.denmehta.iikoService.iiko.response.AccessTokenResponse;
 import ru.denmehta.iikoService.models.Customer;
+import ru.denmehta.iikoService.models.Organization;
 import ru.denmehta.iikoService.models.PinCode;
 import ru.denmehta.iikoService.models.Site;
 import ru.denmehta.iikoService.request.AuthRequestBody;
 import ru.denmehta.iikoService.request.CodeRequestBody;
-import ru.denmehta.iikoService.request.CustomerRequestBody;
 import ru.denmehta.iikoService.response.RestApiException;
 import ru.denmehta.iikoService.security.jwt.JwtTokenProvider;
-import ru.denmehta.iikoService.service.AuthService;
-import ru.denmehta.iikoService.service.CustomerService;
-import ru.denmehta.iikoService.service.PinCodeService;
-import ru.denmehta.iikoService.service.SiteService;
+import ru.denmehta.iikoService.service.*;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -40,11 +41,14 @@ public class AuthController {
     private final SiteService siteService;
     private final AuthService authService;
     private final PinCodeService pinCodeService;
+    private final IikoService iikoService;
+    Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     public AuthController(CustomerService customerService, SiteService siteService, AuthService authService,
                           PinCodeService pinCodeService,
-                          AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+                          AuthenticationManager authenticationManager,
+                          JwtTokenProvider jwtTokenProvider, IikoService iikoService) {
 
         this.customerService = customerService;
         this.siteService = siteService;
@@ -52,7 +56,7 @@ public class AuthController {
         this.pinCodeService = pinCodeService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManager = authenticationManager;
-
+        this.iikoService = iikoService;
     }
 
     @PostConstruct
@@ -68,6 +72,7 @@ public class AuthController {
     public ResponseEntity<PinCode> getCode(@RequestBody CodeRequestBody codeRequestBody,
                                            @RequestHeader("Origin") String domain) {
         if (!bucket.tryConsume(1)) {
+            logger.warn("Too many requests", codeRequestBody);
             throw new RestApiException(HttpStatus.TOO_MANY_REQUESTS, "too many requests");
         }
         Site site = siteService.findByDomain(domain);
@@ -86,6 +91,7 @@ public class AuthController {
         }
 
         //TODO Send sms with code
+        logger.warn("Sending sms...");
         return new ResponseEntity<PinCode>(pinCode, HttpStatus.OK);
     }
 
@@ -95,6 +101,7 @@ public class AuthController {
                                                             @RequestHeader("Origin") String domain) {
 
         if (!bucket.tryConsume(1)) {
+            logger.warn("Too many requests", authRequestBody);
             throw new RestApiException(HttpStatus.TOO_MANY_REQUESTS, "too many requests");
         }
 
@@ -118,12 +125,10 @@ public class AuthController {
 //        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(phone, code));
 
         Customer customer = this.customerService.getByPhoneAndSite(phone, site);
+
+
         if (Objects.isNull(customer)) {
-            customer = new Customer();
-            HashSet<Site> sites = new HashSet<Site>();
-            sites.add(site);
-            customer.setPhone(phone);
-            customer.setSites(sites);
+            customer = iikoService.getCustomer(site, phone);
             this.customerService.save(customer);
         }
 
@@ -131,6 +136,7 @@ public class AuthController {
 
         AccessTokenResponse response = new AccessTokenResponse();
         response.setToken(token);
+        logger.warn("Token generated", response);
         return new ResponseEntity<AccessTokenResponse>(response, HttpStatus.OK);
     }
 

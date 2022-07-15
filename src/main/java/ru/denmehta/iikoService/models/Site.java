@@ -1,9 +1,7 @@
 package ru.denmehta.iikoService.models;
 
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -14,6 +12,11 @@ import java.util.Set;
 public class Site extends BaseEntity {
     @Id
     @Column(name = "id")
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
     private String id;
 
     @Column
@@ -34,7 +37,6 @@ public class Site extends BaseEntity {
 
     @OneToMany(mappedBy="site", targetEntity = Organization.class)
     private Set<Organization> organizations;
-
 
     @ManyToMany(mappedBy = "sites")
     private Set<Customer> customers = new HashSet<>();

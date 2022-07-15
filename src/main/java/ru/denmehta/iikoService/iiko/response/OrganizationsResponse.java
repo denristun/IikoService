@@ -1,11 +1,9 @@
 package ru.denmehta.iikoService.iiko.response;
 
-import lombok.Getter;
 import ru.denmehta.iikoService.models.Organization;
 
 import java.util.List;
-@Getter
-public class OrganizationsResponse extends IikoResponse {
+public class OrganizationsResponse extends IikoBaseResponse {
 
     List<Organization> organizations;
 

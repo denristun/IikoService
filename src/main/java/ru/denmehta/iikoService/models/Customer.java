@@ -70,8 +70,13 @@ public class Customer extends BaseEntity{
     private Set<Order> orders;
 
 
-    @OneToMany(mappedBy="customer", targetEntity = FavouriteProduct.class)
-    private Set<FavouriteProduct> favouriteProducts;
+    @ManyToMany(cascade = { CascadeType.ALL })
+    @JoinTable(
+            name = "customerFavouriteProduct",
+            joinColumns = { @JoinColumn(name = "customerId") },
+            inverseJoinColumns = { @JoinColumn(name = "productId") }
+    )
+    Set<Product> favouriteProducts = new HashSet<>();
 
 
     //    @OneToMany((type) => Address, (address) => address.customer)
@@ -83,17 +88,13 @@ public class Customer extends BaseEntity{
 //    @OneToMany((type) => Card, (card) => card.customer)
 //    cards: Card[]
 
-//    @OneToMany((type) => FavoriteProduct, (favoriteProduct) => favoriteProduct.customer, {
-//            cascade: ['insert', 'update'],
-//            })
-//    favoriteProducts: FavoriteProduct[]
 
 
-    public Set<FavouriteProduct> getFavouriteProducts() {
+    public Set<Product> getFavouriteProducts() {
         return favouriteProducts;
     }
 
-    public void setFavouriteProducts(Set<FavouriteProduct> favouriteProducts) {
+    public void setFavouriteProducts(Set<Product> favouriteProducts) {
         this.favouriteProducts = favouriteProducts;
     }
 

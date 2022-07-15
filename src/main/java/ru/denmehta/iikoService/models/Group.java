@@ -1,18 +1,12 @@
 package ru.denmehta.iikoService.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.Set;
 
 @Entity
 @Table(name = "[group]")
-@Getter
-@Setter
-@ToString
 public class Group extends BaseEntity {
 
     @Id()
@@ -73,13 +67,13 @@ public class Group extends BaseEntity {
     private Integer comboProductsCount;
 
     @Column()
-    private String[] imageLinks;
+    private String imageLinks;
 
     @Column()
     private String parentGroup;
 
-    @OneToMany(mappedBy = "group", targetEntity = Product.class)
-    private Set<Product> products;
+//    @OneToMany(mappedBy = "group", targetEntity = Product.class)
+//    private Set<Product> products;
 
     @ManyToOne(targetEntity = Site.class)
     @JsonIgnoreProperties("groups")
@@ -239,11 +233,11 @@ public class Group extends BaseEntity {
         this.comboProductsCount = comboProductsCount;
     }
 
-    public String[] getImageLinks() {
+    public String getImageLinks() {
         return imageLinks;
     }
 
-    public void setImageLinks(String[] imageLinks) {
+    public void setImageLinks(String imageLinks) {
         this.imageLinks = imageLinks;
     }
 
@@ -255,11 +249,11 @@ public class Group extends BaseEntity {
         this.parentGroup = parentGroup;
     }
 
-    public Set<Product> getProducts() {
-        return products;
-    }
-
-    public void setProducts(Set<Product> products) {
-        this.products = products;
-    }
+//    public Set<Product> getProducts() {
+//        return products;
+//    }
+//
+//    public void setProducts(Set<Product> products) {
+//        this.products = products;
+//    }
 }

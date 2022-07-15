@@ -1,6 +1,5 @@
 package ru.denmehta.iikoService.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -12,14 +11,10 @@ import ru.denmehta.iikoService.models.Customer;
 import ru.denmehta.iikoService.models.Site;
 import ru.denmehta.iikoService.repository.CustomerRepository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
-@Slf4j
 @Service
-public class CustomerService implements CustomerServiceInterface, UserDetailsService {
+public class CustomerService implements  UserDetailsService {
 
     private final CustomerRepository customerRepository;
 
@@ -28,7 +23,6 @@ public class CustomerService implements CustomerServiceInterface, UserDetailsSer
         this.customerRepository = customerRepository;
     }
 
-    @Override
     public UserDetails loadUserByUsername(String phone) throws UsernameNotFoundException {
         Optional<Customer> optionalCustomer = customerRepository.findByPhone(phone);
         if (optionalCustomer.isPresent()) {
@@ -40,7 +34,6 @@ public class CustomerService implements CustomerServiceInterface, UserDetailsSer
         throw new UsernameNotFoundException("User not found");
     }
 
-    @Override
     public Customer getById(String id) {
 
         Optional<Customer> optionalCustomer = customerRepository.findById(id);
@@ -52,7 +45,6 @@ public class CustomerService implements CustomerServiceInterface, UserDetailsSer
 
     }
 
-    @Override
     public Customer getByPhoneAndSite(String phone, Site site) {
         Optional<Customer> optionalCustomer = customerRepository.findByPhoneAndSites(phone, site);
         if (optionalCustomer.isPresent()) {
@@ -61,17 +53,14 @@ public class CustomerService implements CustomerServiceInterface, UserDetailsSer
         return null;
     }
 
-    @Override
     public void save(Customer customer) {
         this.customerRepository.save(customer);
     }
 
-    @Override
     public void delete(String id) {
 
     }
 
-    @Override
     public UserDetails loadUserByPhoneAndDomain(String phone, Site site) {
         Optional<Customer> optionalCustomer = customerRepository.findByPhoneAndSites(phone, site);
         if (optionalCustomer.isPresent()) {
