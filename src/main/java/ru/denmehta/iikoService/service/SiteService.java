@@ -19,12 +19,8 @@ public class SiteService {
         this.siteRepository = siteRepository;
     }
 
-    public Site getById(String siteId) {
-        Optional<Site> optionalSite = siteRepository.findById(siteId);
-        if (optionalSite.isPresent()) {
-            return optionalSite.get();
-        }
-        return null;
+    public Optional<Site> getById(String siteId) {
+       return siteRepository.findById(siteId);
     }
 
     public Site findByToken(String token) {
@@ -35,12 +31,9 @@ public class SiteService {
         return null;
     }
 
-    public Site findByDomain(String domain) {
-        Optional<Site> optionalSite = siteRepository.findByDomain(domain);
-        if (optionalSite.isPresent()) {
-            return optionalSite.get();
-        }
-        return null;
+    public Optional<Site> findByDomain(String domain) {
+        return siteRepository.findByDomain(domain);
+
     }
 
     public List<Site> getActive() {

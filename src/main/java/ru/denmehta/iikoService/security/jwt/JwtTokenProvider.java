@@ -4,12 +4,14 @@ import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.denmehta.iikoService.models.Site;
+import ru.denmehta.iikoService.response.RestApiException;
 import ru.denmehta.iikoService.service.CustomerService;
 import ru.denmehta.iikoService.service.SiteService;
 
@@ -17,6 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 public class JwtTokenProvider {
@@ -62,7 +65,10 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = this.customerService.loadUserByPhoneAndDomain(getPhone(token), getSite(token));
+        UserDetails userDetails = customerService
+                .loadUserByPhoneAndDomain(getPhone(token), getSite(token)
+                        .orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "site not found")));
+
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
@@ -76,11 +82,11 @@ public class JwtTokenProvider {
 
 
 
-    public Site getSite(String token) {
-        return this.siteService.findByDomain(Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().get("domain").toString());
+    public Optional<Site> getSite(String token) {
+        return siteService.findByDomain(Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().get("domain").toString());
     }
 
-    public Site getSite(HttpServletRequest request) {
+    public Optional<Site> getSite(HttpServletRequest request) {
         return this.siteService.findByDomain(Jwts.parser().setSigningKey(secret).parseClaimsJws(this.resolveToken(request)).getBody().get("domain").toString());
     }
 

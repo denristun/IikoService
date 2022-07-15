@@ -19,13 +19,8 @@ public class TerminalService {
         this.terminalRepository = terminalRepository;
     }
 
-    public Terminal getById(String id) {
-
-        Optional<Terminal> optionalTerminal = terminalRepository.findById(id);
-        if (optionalTerminal.isPresent()) {
-            return optionalTerminal.get();
-        }
-        return null;
+    public Optional<Terminal> getById(String id) {
+        return terminalRepository.findById(id);
     }
 
     public List<Terminal> findByOrganization(Organization organization) {
@@ -38,5 +33,9 @@ public class TerminalService {
 
     public void delete(String id) {
 
+    }
+
+    public List<Terminal> findAll(){
+        return terminalRepository.findAll();
     }
 }

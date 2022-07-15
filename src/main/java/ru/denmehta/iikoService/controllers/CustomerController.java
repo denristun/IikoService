@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.denmehta.iikoService.models.Customer;
 import ru.denmehta.iikoService.models.Product;
-import ru.denmehta.iikoService.models.Site;
 import ru.denmehta.iikoService.request.FavouriteProductRequestBody;
 import ru.denmehta.iikoService.request.UpdateCustomerRequestBody;
 import ru.denmehta.iikoService.response.RestApiException;
@@ -42,7 +41,7 @@ public class CustomerController {
                                                 HttpServletRequest request) {
 
         Customer customer = getCustomerFromRequest(request);
-        return new ResponseEntity<Customer>(customer, HttpStatus.OK);
+        return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 
     @RequestMapping(path = "", method = RequestMethod.PATCH, produces = MediaType.APPLICATION_JSON_VALUE )
@@ -59,7 +58,7 @@ public class CustomerController {
         customer.setSex(updateCustomerRequestBody.getSex());
         customer.setEmail(updateCustomerRequestBody.getEmail());
         customerService.save(customer);
-        return new ResponseEntity<Customer>(customer, HttpStatus.OK);
+        return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 
 
@@ -78,7 +77,7 @@ public class CustomerController {
         favouriteProducts.add(product);
         customer.setFavouriteProducts(favouriteProducts);
         customerService.save(customer);
-        return new ResponseEntity<Customer>(customer, HttpStatus.OK);
+        return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 
 
@@ -97,18 +96,19 @@ public class CustomerController {
         favouriteProducts.remove(product);
         customer.setFavouriteProducts(favouriteProducts);
         customerService.save(customer);
-        return new ResponseEntity<Customer>(customer, HttpStatus.OK);
+        return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 
-
-
-
     private Customer getCustomerFromRequest(HttpServletRequest request) {
-        String domain = jwtTokenProvider.getSite(request).getDomain();
+        String domain = jwtTokenProvider.getSite(request).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "site not found")).getDomain();
         String phone = jwtTokenProvider.getPhone(request);
-        Site site = siteService.findByDomain(domain);
-        Customer customer = customerService.getByPhoneAndSite(phone, site);
-        return customer;
+
+        return customerService.getByPhoneAndSite(phone,
+                siteService.findByDomain(domain)
+                        .orElseThrow(() -> new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain)))
+                .orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "customer not found"));
+
+
     }
 
 

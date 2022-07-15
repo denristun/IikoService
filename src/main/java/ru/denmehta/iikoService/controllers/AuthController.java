@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -60,7 +61,7 @@ public class AuthController {
     }
 
     @PostConstruct
-    private  void init(){
+    private void init() {
         Bandwidth limit = Bandwidth.classic(3, Refill.greedy(3, Duration.ofMinutes(1)));
         this.bucket = Bucket4j.builder()
                 .addLimit(limit)
@@ -75,14 +76,9 @@ public class AuthController {
             logger.warn("Too many requests", codeRequestBody);
             throw new RestApiException(HttpStatus.TOO_MANY_REQUESTS, "too many requests");
         }
-        Site site = siteService.findByDomain(domain);
-        if (Objects.isNull(site)) {
-            throw new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain);
-        }
+        siteService.findByDomain(domain).orElseThrow(() -> new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain));
 
-        if (Objects.isNull(codeRequestBody.getPhone())) {
-            throw new RestApiException(HttpStatus.BAD_REQUEST, "phone is required");
-        }
+        Optional.ofNullable(codeRequestBody.getPhone()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "phone is required"));
 
         PinCode pinCode = this.pinCodeService.getNotExpiredCode(codeRequestBody.getPhone());
 
@@ -104,42 +100,27 @@ public class AuthController {
             logger.warn("Too many requests", authRequestBody);
             throw new RestApiException(HttpStatus.TOO_MANY_REQUESTS, "too many requests");
         }
+        Site site = siteService.findByDomain(domain).orElseThrow(() -> new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain));
+        Optional.ofNullable(authRequestBody.getPhone()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "phone is required"));
+        Optional.ofNullable(authRequestBody.getCode()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "code is required"));
 
-        Site site = siteService.findByDomain(domain);
-        String phone = authRequestBody.getPhone();
-        String code = authRequestBody.getCode();
-        if (Objects.isNull(site)) {
-            throw new RestApiException(HttpStatus.BAD_REQUEST, "not allowed from domain " + domain);
-        }
-        if (Objects.isNull(phone) || Objects.isNull(code)) {
-            throw new RestApiException(HttpStatus.BAD_REQUEST, "phone, code are required");
-        }
-
-        boolean isAuth = this.authService.checkPinCode(phone, code);
-
-        if (!isAuth) {
+        boolean isAuth = authService.checkPinCode(authRequestBody.getPhone(), authRequestBody.getCode());
+        if (!isAuth)
             throw new RestApiException(HttpStatus.UNAUTHORIZED, "wrong code or phone");
-        }
 
         //TODO work on it
 //        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(phone, code));
 
-        Customer customer = this.customerService.getByPhoneAndSite(phone, site);
+        if(customerService.getByPhoneAndSite(authRequestBody.getPhone(), site).isEmpty())
+            customerService.save(iikoService.getCustomer(site, authRequestBody.getPhone()));
 
-
-        if (Objects.isNull(customer)) {
-            customer = iikoService.getCustomer(site, phone);
-            this.customerService.save(customer);
-        }
-
-        String token = jwtTokenProvider.createToken(phone, site.getDomain());
+        String token = jwtTokenProvider.createToken(authRequestBody.getPhone(), site.getDomain());
 
         AccessTokenResponse response = new AccessTokenResponse();
         response.setToken(token);
         logger.warn("Token generated", response);
-        return new ResponseEntity<AccessTokenResponse>(response, HttpStatus.OK);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
 
 
 }

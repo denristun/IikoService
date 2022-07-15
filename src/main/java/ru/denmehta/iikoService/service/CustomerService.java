@@ -45,16 +45,12 @@ public class CustomerService implements  UserDetailsService {
 
     }
 
-    public Customer getByPhoneAndSite(String phone, Site site) {
-        Optional<Customer> optionalCustomer = customerRepository.findByPhoneAndSites(phone, site);
-        if (optionalCustomer.isPresent()) {
-            return optionalCustomer.get();
-        }
-        return null;
+    public Optional<Customer> getByPhoneAndSite(String phone, Site site) {
+        return customerRepository.findByPhoneAndSites(phone, site);
     }
 
     public void save(Customer customer) {
-        this.customerRepository.save(customer);
+        customerRepository.save(customer);
     }
 
     public void delete(String id) {

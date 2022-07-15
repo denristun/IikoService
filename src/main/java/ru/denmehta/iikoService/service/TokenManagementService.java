@@ -8,17 +8,17 @@ import ru.denmehta.iikoService.models.Site;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
 public class TokenManagementService  {
 
-
     final SiteService siteService;
     public final IikoRestApi iikoRestApi;
 
-    private Map<String, String> tokens;
+    private final Map<Site, String> tokens;
 
 
     @Autowired
@@ -34,14 +34,14 @@ public class TokenManagementService  {
     }
 
     public String getToken(Site site) {
-        return this.tokens.get(site.getId());
+        return tokens.get(site);
     }
 
-    public Map<String, String> getTokens() {
-        return this.tokens;
+    public Map<Site, String> getTokens() {
+        return tokens;
     }
 
-    class GetSiteTokenRun implements Runnable {
+    static class GetSiteTokenRun implements Runnable {
 
         private final Site site;
         private final TokenManagementService tokenManagementService;
@@ -54,9 +54,9 @@ public class TokenManagementService  {
         @Override
         public void run() {
             try {
-                String token = this.tokenManagementService.iikoRestApi.getAccessToken(site.getApiLogin()).getBody().getToken();
-                this.tokenManagementService.tokens.put(site.getId(), token);
-                Thread.sleep(1 * 1000 * 60 * 2);
+                String token = Objects.requireNonNull(tokenManagementService.iikoRestApi.getAccessToken(site.getApiLogin()).getBody()).getToken();
+                tokenManagementService.tokens.put(site, token);
+                Thread.sleep(1000 * 60 * 2);
 
             } catch (InterruptedException e) {
                 System.out.println("Interrupt");
