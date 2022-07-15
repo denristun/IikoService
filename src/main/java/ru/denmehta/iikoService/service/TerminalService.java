@@ -1,16 +1,18 @@
 package ru.denmehta.iikoService.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.Organization;
 import ru.denmehta.iikoService.models.Terminal;
 import ru.denmehta.iikoService.repository.TerminalRepository;
+import ru.denmehta.iikoService.response.RestApiException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
-public class TerminalService {
+public class TerminalService implements IBaseDbService<Terminal, String> {
 
     final TerminalRepository terminalRepository;
 
@@ -19,23 +21,18 @@ public class TerminalService {
         this.terminalRepository = terminalRepository;
     }
 
-    public Optional<Terminal> getById(String id) {
-        return terminalRepository.findById(id);
-    }
 
     public List<Terminal> findByOrganization(Organization organization) {
         return terminalRepository.findByOrganization(organization);
     }
 
-    public void save(Terminal terminal) {
-
+    @Override
+    public String getName() {
+        return Terminal.class.getName();
     }
 
-    public void delete(String id) {
-
-    }
-
-    public List<Terminal> findAll(){
-        return terminalRepository.findAll();
+    @Override
+    public JpaRepository<Terminal, String> getRepository() {
+        return terminalRepository;
     }
 }

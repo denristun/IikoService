@@ -5,10 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.PinCode;
 import ru.denmehta.iikoService.util.Utils;
 
-import java.util.Objects;
-
 @Service
-public class   AuthService {
+public class AuthService {
     final PinCodeService pinCodeService;
 
     @Autowired
@@ -23,12 +21,4 @@ public class   AuthService {
         return pinCode;
     }
 
-    public boolean checkPinCode(String phone, String code) {
-      PinCode pinCode = pinCodeService.getByPhoneAndCode(phone, code);
-      if(Objects.isNull(pinCode)){
-          return false;
-      }
-      pinCodeService.delete(pinCode);
-      return true;
-    }
 }

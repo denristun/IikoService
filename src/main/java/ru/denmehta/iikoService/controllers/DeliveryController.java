@@ -6,7 +6,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.denmehta.iikoService.models.Organization;
-import ru.denmehta.iikoService.models.Site;
 import ru.denmehta.iikoService.models.Terminal;
 import ru.denmehta.iikoService.request.DeliveryRequestBody;
 import ru.denmehta.iikoService.response.RestApiException;
@@ -15,7 +14,6 @@ import ru.denmehta.iikoService.service.SiteService;
 import ru.denmehta.iikoService.service.TerminalService;
 
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v1/delivery")
@@ -36,22 +34,15 @@ public class DeliveryController {
     public ResponseEntity<List<Terminal>> getTerminals(@RequestBody DeliveryRequestBody deliveryRequestBody,
                                                        @RequestHeader("Origin") String domain) {
 
-        Site site = siteService.findByDomain(domain);
-        if (Objects.isNull(site)) {
-            throw new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain);
-        }
+        siteService.findByDomain(domain);
 
-        Organization organization = this.organizationService.getById(deliveryRequestBody.getOrganizationId());
+        Organization organization = organizationService.getById(deliveryRequestBody.getOrganizationId());
+        List<Terminal> terminals = terminalService.findByOrganization(organization);
 
-        if (Objects.isNull(organization)) {
-            throw new RestApiException(HttpStatus.NOT_FOUND, "organization not found");
-        }
-        List<Terminal> terminals = this.terminalService.findByOrganization(organization);
-
-        if (terminals.isEmpty()) {
+        if (terminals.isEmpty())
             throw new RestApiException(HttpStatus.NOT_FOUND, "terminals not found");
-        }
-        return new ResponseEntity<List<Terminal>>(terminals, HttpStatus.OK);
+
+        return new ResponseEntity<>(terminals, HttpStatus.OK);
     }
 
 }

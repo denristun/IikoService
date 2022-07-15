@@ -4,14 +4,12 @@ import io.jsonwebtoken.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.denmehta.iikoService.models.Site;
-import ru.denmehta.iikoService.response.RestApiException;
 import ru.denmehta.iikoService.service.CustomerService;
 import ru.denmehta.iikoService.service.SiteService;
 
@@ -19,7 +17,6 @@ import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Base64;
 import java.util.Date;
-import java.util.Optional;
 
 @Component
 public class JwtTokenProvider {
@@ -29,8 +26,8 @@ public class JwtTokenProvider {
     @Value("${jwt.token.expired}")
     private long validityInMilliseconds;
 
-    private CustomerService customerService;
-    private SiteService siteService;
+    private final CustomerService customerService;
+    private final SiteService siteService;
 
     @Autowired
     public JwtTokenProvider(CustomerService customerService, SiteService siteService) {
@@ -40,8 +37,7 @@ public class JwtTokenProvider {
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        return bCryptPasswordEncoder;
+        return new BCryptPasswordEncoder();
     }
 
     @PostConstruct
@@ -65,10 +61,7 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = customerService
-                .loadUserByPhoneAndDomain(getPhone(token), getSite(token)
-                        .orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "site not found")));
-
+        UserDetails userDetails = customerService.loadUserByPhoneAndDomain(getPhone(token), getSite(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
@@ -82,19 +75,19 @@ public class JwtTokenProvider {
 
 
 
-    public Optional<Site> getSite(String token) {
+    public Site getSite(String token) {
         return siteService.findByDomain(Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().get("domain").toString());
     }
 
-    public Optional<Site> getSite(HttpServletRequest request) {
-        return this.siteService.findByDomain(Jwts.parser().setSigningKey(secret).parseClaimsJws(this.resolveToken(request)).getBody().get("domain").toString());
+    public Site getSite(HttpServletRequest request) {
+        return siteService.findByDomain(Jwts.parser().setSigningKey(secret).parseClaimsJws(this.resolveToken(request)).getBody().get("domain").toString());
     }
 
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7, bearerToken.length());
+            return bearerToken.substring(7);
         }
         return null;
     }
@@ -103,10 +96,7 @@ public class JwtTokenProvider {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token);
 
-            if (claims.getBody().getExpiration().before(new Date())) {
-                return false;
-            }
-            return true;
+            return !claims.getBody().getExpiration().before(new Date());
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }

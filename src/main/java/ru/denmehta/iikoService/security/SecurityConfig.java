@@ -28,6 +28,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String MENU_ENDPOINT = "/api/v1/menu/**";
     private static final String DELIVERY_ENDPOINT = "/api/v1/delivery/**";
     private static final String SITE_ENDPOINT ="/api/v1/site/**";
+    private static final String STATUS_ENDPOINT ="/api/v1/status/**";
 
 
 
@@ -57,9 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeRequests()
-                .antMatchers(AUTH_ENDPOINT).permitAll()
-                .antMatchers(MENU_ENDPOINT).permitAll()
-                .antMatchers(SITE_ENDPOINT).permitAll()
+                .antMatchers(STATUS_ENDPOINT, AUTH_ENDPOINT, SITE_ENDPOINT, MENU_ENDPOINT).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .apply(new JwtConfigurer(jwtTokenProvider));

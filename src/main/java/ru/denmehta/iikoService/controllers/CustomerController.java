@@ -27,7 +27,7 @@ public class CustomerController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CustomerController( SiteService siteService, ProductService productService,
+    public CustomerController(SiteService siteService, ProductService productService,
                               CustomerService customerService,
                               JwtTokenProvider jwtTokenProvider) {
         this.siteService = siteService;
@@ -38,16 +38,15 @@ public class CustomerController {
 
     @RequestMapping(path = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> getCustomer(
-                                                HttpServletRequest request) {
+            HttpServletRequest request) {
 
         Customer customer = getCustomerFromRequest(request);
         return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 
-    @RequestMapping(path = "", method = RequestMethod.PATCH, produces = MediaType.APPLICATION_JSON_VALUE )
+    @RequestMapping(path = "", method = RequestMethod.PATCH, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Customer> updateBirthday(@RequestBody UpdateCustomerRequestBody updateCustomerRequestBody,
                                                    HttpServletRequest request) {
-
 
 
         Customer customer = getCustomerFromRequest(request);
@@ -62,9 +61,9 @@ public class CustomerController {
     }
 
 
-    @RequestMapping(path = "/favourite", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<Customer>  addFavouriteProduct(@RequestBody FavouriteProductRequestBody addFavouriteProductRequestBody,
-                                                   HttpServletRequest request) {
+    @RequestMapping(path = "/favourite", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Customer> addFavouriteProduct(@RequestBody FavouriteProductRequestBody addFavouriteProductRequestBody,
+                                                        HttpServletRequest request) {
 
         if (Objects.isNull(addFavouriteProductRequestBody.getProductId())) {
             throw new RestApiException(HttpStatus.BAD_REQUEST, "productId is required");
@@ -81,9 +80,9 @@ public class CustomerController {
     }
 
 
-    @RequestMapping(path = "/favourite", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public ResponseEntity<Customer>  deleteFavouriteProduct(@RequestBody FavouriteProductRequestBody addFavouriteProductRequestBody,
-                                                         HttpServletRequest request) {
+    @RequestMapping(path = "/favourite", method = RequestMethod.DELETE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Customer> deleteFavouriteProduct(@RequestBody FavouriteProductRequestBody addFavouriteProductRequestBody,
+                                                           HttpServletRequest request) {
 
         if (Objects.isNull(addFavouriteProductRequestBody.getProductId())) {
             throw new RestApiException(HttpStatus.BAD_REQUEST, "productId is required");
@@ -100,13 +99,9 @@ public class CustomerController {
     }
 
     private Customer getCustomerFromRequest(HttpServletRequest request) {
-        String domain = jwtTokenProvider.getSite(request).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "site not found")).getDomain();
+        String domain = jwtTokenProvider.getSite(request).getDomain();
         String phone = jwtTokenProvider.getPhone(request);
-
-        return customerService.getByPhoneAndSite(phone,
-                siteService.findByDomain(domain)
-                        .orElseThrow(() -> new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain)))
-                .orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "customer not found"));
+        return customerService.getByPhoneAndSite(phone, siteService.findByDomain(domain));
 
 
     }

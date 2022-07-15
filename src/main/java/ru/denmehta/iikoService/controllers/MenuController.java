@@ -7,13 +7,13 @@ import org.springframework.web.bind.annotation.*;
 import ru.denmehta.iikoService.models.Group;
 import ru.denmehta.iikoService.models.Product;
 import ru.denmehta.iikoService.models.Site;
-import ru.denmehta.iikoService.request.AuthRequestBody;
 import ru.denmehta.iikoService.request.MenuRequestBody;
 import ru.denmehta.iikoService.response.RestApiException;
 import ru.denmehta.iikoService.service.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,24 +31,14 @@ public class MenuController {
         this.siteService = siteService;
     }
 
-
     @RequestMapping(value = "/product", method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Product> getProduct(@RequestBody MenuRequestBody menuRequestBody,
-                                              @RequestHeader("Origin") String domain) {
+    public ResponseEntity<Product> getProduct(@RequestBody MenuRequestBody menuRequestBody) {
 
-        String productId = menuRequestBody.getProductId();
-
-        if (Objects.isNull(productId)) {
-            throw new RestApiException(HttpStatus.BAD_REQUEST, "product id is required");
-        }
-
-        Product product = this.productService.getById(productId);
-        if (Objects.isNull(product)) {
-            throw new RestApiException(HttpStatus.NOT_FOUND, "product not found");
-        }
-        return new ResponseEntity<Product>(product, HttpStatus.OK);
+        String productId = Optional.ofNullable(menuRequestBody.getProductId())
+                .orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "product id is required"));
+        return new ResponseEntity<>(productService.getById(productId), HttpStatus.OK);
     }
 
     @RequestMapping(value = "/products", method = RequestMethod.POST,
@@ -61,15 +51,12 @@ public class MenuController {
         Site site = getSite(menuRequestBody, domain);
         String groupId = menuRequestBody.getGroupId();
 
-        List<Product> products = this.productService.getAllBySite(site)
+        List<Product> products = productService.getAllBySite(site)
                 .stream()
-                .filter(product -> {
-                    return !Objects.nonNull(groupId) || product.getGroup().equals(groupId);
-                }).collect(Collectors.toList());
-        if (Objects.isNull(products)) {
-            throw new RestApiException(HttpStatus.NOT_FOUND, "products not found");
-        }
-        return new ResponseEntity<List<Product>>(products, HttpStatus.OK);
+                .filter(product -> product.getGroup().equals(groupId))
+                .collect(Collectors.toList());
+
+        return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
     @RequestMapping(path = "/groups", method = RequestMethod.POST,
@@ -80,21 +67,12 @@ public class MenuController {
                                                @RequestHeader("Origin") String domain) {
 
         Site site = getSite(menuRequestBody, domain);
-
-        List<Group> groups = this.groupService.getAllSiteDisplayedAndSite(site);
-        if (groups.isEmpty()) {
-            throw new RestApiException(HttpStatus.NOT_FOUND, "groups not found");
-        }
-        return new ResponseEntity<List<Group>>(groups, HttpStatus.OK);
+        return new ResponseEntity<>(groupService.getAllSiteDisplayedAndSite(site), HttpStatus.OK);
     }
 
     private Site getSite(MenuRequestBody menuRequestBody, String domain) {
         String token = menuRequestBody.getToken();
-        Site site = Objects.isNull(token) ? siteService.findByDomain(domain) : siteService.findByToken(token);
-        if (Objects.isNull(site)) {
-            throw new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain);
-        }
-        return site;
+        return Objects.isNull(token) ? siteService.findByDomain(domain) : siteService.findByToken(token);
     }
 
 }

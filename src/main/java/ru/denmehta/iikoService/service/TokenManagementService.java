@@ -33,7 +33,7 @@ public class TokenManagementService  {
         }
     }
 
-    public String getToken(Site site) {
+    public String getIikoToken(Site site) {
         return tokens.get(site);
     }
 

@@ -15,7 +15,7 @@ public class SizePrice extends BaseEntity{
     @JoinColumn(name="priceId")
     private Price price;
 
-    @ManyToOne(targetEntity = SizePrice.class)
+    @ManyToOne(targetEntity = Product.class)
     @JoinColumn(name="productId")
     private Product product;
 

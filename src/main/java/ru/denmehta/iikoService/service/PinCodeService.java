@@ -1,15 +1,18 @@
 package ru.denmehta.iikoService.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.PinCode;
 import ru.denmehta.iikoService.repository.PinCodeRepository;
+import ru.denmehta.iikoService.response.RestApiException;
 
 import java.util.Date;
 import java.util.Optional;
 
 @Service
-public class PinCodeService {
+public class PinCodeService implements IBaseDbService<PinCode, String> {
 
     final PinCodeRepository pinCodeRepository;
 
@@ -19,25 +22,20 @@ public class PinCodeService {
     }
 
     public PinCode getByPhoneAndCode(String phone, String code) {
-        Optional<PinCode> optionalPinCode = pinCodeRepository.findByPhoneAndCode(phone, code);
-        if (optionalPinCode.isPresent()) {
-            return optionalPinCode.get();
-        }
-        return null;
+       return pinCodeRepository.findByPhoneAndCode(phone, code).orElseThrow(() -> new RestApiException(HttpStatus.UNAUTHORIZED, "wrong code or phone"));
     }
 
-    public PinCode getNotExpiredCode(String phone) {
-        Optional<PinCode> optionalPinCode = pinCodeRepository.findByExpiresInAfterAndPhone(new Date(), phone);
-        if (optionalPinCode.isPresent()) {
-            return optionalPinCode.get();
-        }
-        return null;
+    public Optional<PinCode> getNotExpiredCode(String phone) {
+        return pinCodeRepository.findByExpiresInAfterAndPhone(new Date(), phone);
     }
 
-    public void save(PinCode pinCode) {
-        pinCodeRepository.save(pinCode);
+    @Override
+    public String getName() {
+        return PinCode.class.getName();
     }
-    public void delete(PinCode pinCode) {
-    pinCodeRepository.delete(pinCode);
+
+    @Override
+    public JpaRepository<PinCode, String> getRepository() {
+        return pinCodeRepository;
     }
 }

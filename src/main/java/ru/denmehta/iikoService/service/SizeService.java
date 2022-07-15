@@ -1,12 +1,13 @@
 package ru.denmehta.iikoService.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.Size;
 import ru.denmehta.iikoService.repository.SizeRepository;
 
 @Service
-public class SizeService {
+public class SizeService implements IBaseDbService<Size, String> {
 
 
     final SizeRepository sizeRepository;
@@ -16,11 +17,14 @@ public class SizeService {
         this.sizeRepository = sizeRepository;
     }
 
-    public void save(Size size) {
-    this.sizeRepository.save(size);
+
+    @Override
+    public String getName() {
+        return Size.class.getName();
     }
 
-    public void delete(String id) {
-
+    @Override
+    public JpaRepository<Size, String> getRepository() {
+        return sizeRepository;
     }
 }

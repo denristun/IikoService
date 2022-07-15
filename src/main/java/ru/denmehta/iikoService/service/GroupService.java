@@ -1,43 +1,31 @@
 package ru.denmehta.iikoService.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.Group;
 import ru.denmehta.iikoService.models.Site;
 import ru.denmehta.iikoService.repository.GroupRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 
 @Service
-    public class GroupService   {
+public class GroupService implements IBaseDbService<Group, String> {
 
-        final
-        GroupRepository groupRepository;
+    final GroupRepository groupRepository;
 
     public GroupService(GroupRepository groupRepository) {
         this.groupRepository = groupRepository;
     }
 
-
-    public Group getById(String id) {
-        Optional<Group> optionalGroup = groupRepository.findById(id);
-        if (optionalGroup.isPresent()) {
-            return optionalGroup.get();
-        }
-        return null;
+    @Override
+    public String getName() {
+        return Group.class.getName();
     }
 
-    public void save(Group group) {
-    }
-
-    public void delete(String id) {
-
-    }
-
-    public List<Group> getAll() {
-        return groupRepository.findAll();
+    @Override
+    public JpaRepository<Group, String> getRepository() {
+        return groupRepository;
     }
 
     public List<Group> getAllSiteDisplayedAndSite(Site site) {

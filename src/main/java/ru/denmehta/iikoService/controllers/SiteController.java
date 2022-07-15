@@ -4,15 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.denmehta.iikoService.models.Product;
 import ru.denmehta.iikoService.models.Site;
-import ru.denmehta.iikoService.request.MenuRequestBody;
 import ru.denmehta.iikoService.request.SiteRequestBody;
 import ru.denmehta.iikoService.response.RestApiException;
 import ru.denmehta.iikoService.service.SiteService;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -30,16 +27,15 @@ public class SiteController {
     @RequestMapping(value = "", method = RequestMethod.GET,
           produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Site>> getSites(@RequestHeader("Origin") String domain) {
-        List<Site> sites = siteService.getAll();
-        return new ResponseEntity<>(sites, HttpStatus.OK);
+        return new ResponseEntity<>(siteService.findAll(), HttpStatus.OK);
     }
 
     @RequestMapping(value = "", method = RequestMethod.DELETE,
             consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> deleteSite(@RequestBody SiteRequestBody siteRequestBody,
                                                  @RequestHeader("Origin") String domain) {
-        String siteId = Optional.ofNullable(siteRequestBody.getSiteId()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "siteId is required"));
-
+        String siteId = Optional.ofNullable(siteRequestBody.getSiteId())
+                .orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "siteId is required"));
         siteService.deleteById(siteId);
         return new ResponseEntity<>(siteId, HttpStatus.OK);
 
@@ -51,7 +47,7 @@ public class SiteController {
                                                  @RequestHeader("Origin") String domain) {
 
         String siteId = Optional.ofNullable(siteRequestBody.getSiteId()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "siteId is required"));
-        Site site = siteService.getById(siteId).orElseThrow(() -> new RestApiException(HttpStatus.NOT_FOUND, "site not found"));
+        Site site = siteService.getById(siteId);
         site.setActive(siteRequestBody.isActive());
         site.setApiLogin(siteRequestBody.getApiLogin());
         site.setDomain(siteRequestBody.getDomain());

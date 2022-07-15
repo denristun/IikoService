@@ -1,6 +1,8 @@
 package ru.denmehta.iikoService.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,11 +12,12 @@ import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.Customer;
 import ru.denmehta.iikoService.models.Site;
 import ru.denmehta.iikoService.repository.CustomerRepository;
+import ru.denmehta.iikoService.response.RestApiException;
 
 import java.util.*;
 
 @Service
-public class CustomerService implements  UserDetailsService {
+public class CustomerService implements  UserDetailsService, IBaseDbService<Customer, String> {
 
     private final CustomerRepository customerRepository;
 
@@ -34,27 +37,12 @@ public class CustomerService implements  UserDetailsService {
         throw new UsernameNotFoundException("User not found");
     }
 
-    public Customer getById(String id) {
-
-        Optional<Customer> optionalCustomer = customerRepository.findById(id);
-        if (optionalCustomer.isPresent()) {
-            return optionalCustomer.get();
-        }
-        return null;
-
-
+    public Customer getByPhoneAndSite(String phone, Site site) {
+        return customerRepository.findByPhoneAndSites(phone, site).orElseThrow(() -> new RestApiException(HttpStatus.NOT_FOUND, "customer not found"));
     }
 
-    public Optional<Customer> getByPhoneAndSite(String phone, Site site) {
-        return customerRepository.findByPhoneAndSites(phone, site);
-    }
-
-    public void save(Customer customer) {
-        customerRepository.save(customer);
-    }
-
-    public void delete(String id) {
-
+    public boolean isCustomerExist(String phone, Site site){
+        return Optional.ofNullable(getByPhoneAndSite(phone, site)).isPresent();
     }
 
     public UserDetails loadUserByPhoneAndDomain(String phone, Site site) {
@@ -67,5 +55,13 @@ public class CustomerService implements  UserDetailsService {
         throw new UsernameNotFoundException("Customer not found");
     }
 
+    @Override
+    public String getName() {
+        return Customer.class.getName();
+    }
 
+    @Override
+    public JpaRepository<Customer, String> getRepository() {
+        return customerRepository;
+    }
 }

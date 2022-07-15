@@ -1,11 +1,9 @@
 package ru.denmehta.iikoService.service;
 
-import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.iiko.IikoRestApi;
-import ru.denmehta.iikoService.iiko.response.AccessTokenResponse;
 import ru.denmehta.iikoService.iiko.response.CustomerInfoResponse;
 import ru.denmehta.iikoService.iiko.response.GetMenuResponse;
 import ru.denmehta.iikoService.iiko.response.OrganizationsResponse;
@@ -13,6 +11,7 @@ import ru.denmehta.iikoService.models.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class IikoService  {
@@ -32,37 +31,36 @@ public class IikoService  {
     }
 
     public List<Product> getProducts(Site site) {
-        String token = this.tokenManagementService.getToken(site);
+        String token = this.tokenManagementService.getIikoToken(site);
         ResponseEntity<GetMenuResponse> response = iikoRestApi.getMenu(token,  site.getOrganizations().stream().findFirst().get().getId());
         return response.getBody().getProducts();
     }
 
     public List<Group> getGroups(Site site) {
-        String token = this.tokenManagementService.getToken(site);
+        String token = this.tokenManagementService.getIikoToken(site);
         ResponseEntity<GetMenuResponse> response = iikoRestApi.getMenu(token,  site.getOrganizations().stream().findFirst().get().getId());
-        return response.getBody().getGroups();
+        return Objects.requireNonNull(response.getBody()).getGroups();
     }
 
     public List<Organization> getOrganizations(Site site) {
-        String token = this.tokenManagementService.getToken(site);
+        String token = this.tokenManagementService.getIikoToken(site);
         ResponseEntity<OrganizationsResponse> response = iikoRestApi.getOrganizations(token);
-        return response.getBody().getOrganizations();
+        return Objects.requireNonNull(response.getBody()).getOrganizations();
     }
 
     public List<Size> getSizes(Site site) {
-
-        String token = this.tokenManagementService.getToken(site);
+        String token = tokenManagementService.getIikoToken(site);
         ResponseEntity<GetMenuResponse> response = iikoRestApi.getMenu(token,  site.getOrganizations().stream().findFirst().get().getId());
-        return response.getBody().getSizes();
+        return Objects.requireNonNull(response.getBody()).getSizes();
     }
 
     public Customer getCustomer(Site site, String phone) {
-        String token = this.tokenManagementService.getToken(site);
+        String token = tokenManagementService.getIikoToken(site);
         String organizationId = site.getOrganizations().stream().findFirst().get().getId();
 
         CustomerInfoResponse customerInfo = iikoRestApi.getCustomer(token, organizationId, phone).getBody();
         Customer customer = new Customer();
-        HashSet<Site> sites = new HashSet<Site>();
+        HashSet<Site> sites = new HashSet<>();
         customer.setName(customerInfo.getName());
         customer.setMiddleName(customerInfo.getMiddleName());
         customer.setSurname(customerInfo.getSurname());

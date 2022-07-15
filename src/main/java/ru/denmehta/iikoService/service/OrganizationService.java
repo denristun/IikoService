@@ -1,16 +1,13 @@
 package ru.denmehta.iikoService.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.models.Organization;
-import ru.denmehta.iikoService.models.Terminal;
 import ru.denmehta.iikoService.repository.OrganizationRepository;
 
-import java.util.List;
-import java.util.Optional;
-
 @Service
-public class OrganizationService {
+public class OrganizationService implements IBaseDbService<Organization, String> {
 
     final OrganizationRepository organizationRepository;
 
@@ -19,22 +16,13 @@ public class OrganizationService {
         this.organizationRepository = organizationRepository;
     }
 
-    public Organization getById(String id) {
-
-        Optional<Organization> optionalOrganization = organizationRepository.findById(id);
-        if (optionalOrganization.isPresent()) {
-            return optionalOrganization.get();
-        }
-        return null;
+    @Override
+    public String getName() {
+        return Organization.class.getName();
     }
 
-    public void save(Organization organization) {
-        organizationRepository.save(organization);
-
-    }
-
-
-    public void delete(String id) {
-
+    @Override
+    public JpaRepository<Organization, String> getRepository() {
+        return organizationRepository;
     }
 }

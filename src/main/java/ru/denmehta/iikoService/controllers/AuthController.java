@@ -10,13 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 import ru.denmehta.iikoService.iiko.response.AccessTokenResponse;
-import ru.denmehta.iikoService.models.Customer;
-import ru.denmehta.iikoService.models.Organization;
 import ru.denmehta.iikoService.models.PinCode;
 import ru.denmehta.iikoService.models.Site;
 import ru.denmehta.iikoService.request.AuthRequestBody;
@@ -27,7 +22,6 @@ import ru.denmehta.iikoService.service.*;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -36,7 +30,6 @@ import java.util.Optional;
 public class AuthController {
 
     private Bucket bucket;
-    private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomerService customerService;
     private final SiteService siteService;
@@ -48,7 +41,6 @@ public class AuthController {
     @Autowired
     public AuthController(CustomerService customerService, SiteService siteService, AuthService authService,
                           PinCodeService pinCodeService,
-                          AuthenticationManager authenticationManager,
                           JwtTokenProvider jwtTokenProvider, IikoService iikoService) {
 
         this.customerService = customerService;
@@ -56,7 +48,6 @@ public class AuthController {
         this.authService = authService;
         this.pinCodeService = pinCodeService;
         this.jwtTokenProvider = jwtTokenProvider;
-        this.authenticationManager = authenticationManager;
         this.iikoService = iikoService;
     }
 
@@ -76,19 +67,14 @@ public class AuthController {
             logger.warn("Too many requests", codeRequestBody);
             throw new RestApiException(HttpStatus.TOO_MANY_REQUESTS, "too many requests");
         }
-        siteService.findByDomain(domain).orElseThrow(() -> new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain));
-
+        siteService.findByDomain(domain);
         Optional.ofNullable(codeRequestBody.getPhone()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "phone is required"));
-
-        PinCode pinCode = this.pinCodeService.getNotExpiredCode(codeRequestBody.getPhone());
-
-        if (Objects.isNull(pinCode)) {
-            pinCode = this.authService.generatePinCode(codeRequestBody.getPhone());
-        }
+        PinCode pinCode = pinCodeService.getNotExpiredCode(codeRequestBody.getPhone())
+                .orElse(authService.generatePinCode(codeRequestBody.getPhone()));
 
         //TODO Send sms with code
         logger.warn("Sending sms...");
-        return new ResponseEntity<PinCode>(pinCode, HttpStatus.OK);
+        return new ResponseEntity<>(pinCode, HttpStatus.OK);
     }
 
 
@@ -100,18 +86,16 @@ public class AuthController {
             logger.warn("Too many requests", authRequestBody);
             throw new RestApiException(HttpStatus.TOO_MANY_REQUESTS, "too many requests");
         }
-        Site site = siteService.findByDomain(domain).orElseThrow(() -> new RestApiException(HttpStatus.UNAUTHORIZED, "not allowed from domain " + domain));
+        Site site = siteService.findByDomain(domain);
         Optional.ofNullable(authRequestBody.getPhone()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "phone is required"));
         Optional.ofNullable(authRequestBody.getCode()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "code is required"));
 
-        boolean isAuth = authService.checkPinCode(authRequestBody.getPhone(), authRequestBody.getCode());
-        if (!isAuth)
-            throw new RestApiException(HttpStatus.UNAUTHORIZED, "wrong code or phone");
+        pinCodeService.getByPhoneAndCode(authRequestBody.getPhone(), authRequestBody.getCode());
 
         //TODO work on it
 //        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(phone, code));
 
-        if(customerService.getByPhoneAndSite(authRequestBody.getPhone(), site).isEmpty())
+        if(!customerService.isCustomerExist(authRequestBody.getPhone(), site))
             customerService.save(iikoService.getCustomer(site, authRequestBody.getPhone()));
 
         String token = jwtTokenProvider.createToken(authRequestBody.getPhone(), site.getDomain());
