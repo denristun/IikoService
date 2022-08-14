@@ -11,6 +11,8 @@ import ru.denmehta.iikoService.iiko.handler.IikoResponseErrorHandler;
 import ru.denmehta.iikoService.iiko.request.*;
 import ru.denmehta.iikoService.iiko.response.*;
 
+import java.util.List;
+
 @Service
 public class IikoRestApi implements RestApiInterface {
 
@@ -73,6 +75,27 @@ public class IikoRestApi implements RestApiInterface {
         return restTemplate.postForEntity(IIKO_URL + "/deliveries/create", httpEntity, CreateDeliveryResponse.class);
 
     }
+
+    @Override
+    public ResponseEntity<GetDeliveryByDateAndStatusResponse> getDeliveryByDateAndStatus(String token, List<String> organizationIds,
+                                                                 String deliveryDateFrom, String deliveryDateTo, List<String> statuses,
+                                                                                        List<String> sourceKeys) {
+
+        GetDeliveryByDateAndStatusRequest request = GetDeliveryByDateAndStatusRequest.builder()
+                .setDeliveryDateTo(deliveryDateTo)
+                .setDeliveryDateFrom(deliveryDateFrom)
+                .setStatuses(statuses)
+                .setSourceKeys(sourceKeys)
+                .setOrganizationIds(organizationIds)
+                .build();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+        HttpEntity<GetDeliveryByDateAndStatusRequest> httpEntity = new HttpEntity<>(request, headers);
+        return restTemplate.postForEntity(IIKO_URL + "/deliveries/by_delivery_date_and_status", httpEntity, GetDeliveryByDateAndStatusResponse.class);
+
+    }
+
 
 
 }

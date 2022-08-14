@@ -37,10 +37,11 @@ public class Organization extends  BaseEntity{
     private String additionalInfo;
 
     @OneToMany(mappedBy="organization", targetEntity = Terminal.class)
+    @JsonIgnoreProperties("organization")
     private Set<Terminal> terminals;
 
     @ManyToOne(targetEntity = Site.class)
-    @JsonIgnoreProperties("organizations")
+    @JsonIgnoreProperties(value = {"organizations", "groups", "customers"})
     @JoinColumn(name="siteId", updatable = false)
     private Site site;
 

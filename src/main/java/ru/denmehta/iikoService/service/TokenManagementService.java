@@ -1,16 +1,17 @@
 package ru.denmehta.iikoService.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import ru.denmehta.iikoService.iiko.IikoRestApi;
 import ru.denmehta.iikoService.models.Site;
+import ru.denmehta.iikoService.response.RestApiException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 @Service
 public class TokenManagementService  {
@@ -18,7 +19,7 @@ public class TokenManagementService  {
     final SiteService siteService;
     public final IikoRestApi iikoRestApi;
 
-    private final Map<Site, String> tokens;
+    private final Map<String, String> tokens;
 
 
     @Autowired
@@ -34,10 +35,10 @@ public class TokenManagementService  {
     }
 
     public String getIikoToken(Site site) {
-        return tokens.get(site);
+        return Optional.ofNullable(tokens.get(site.getApiLogin())).orElseThrow(() -> new RestApiException(HttpStatus.NOT_FOUND, "no iiko token"));
     }
 
-    public Map<Site, String> getTokens() {
+    public Map<String, String> getTokens() {
         return tokens;
     }
 
@@ -55,7 +56,7 @@ public class TokenManagementService  {
         public void run() {
             try {
                 String token = Objects.requireNonNull(tokenManagementService.iikoRestApi.getAccessToken(site.getApiLogin()).getBody()).getToken();
-                tokenManagementService.tokens.put(site, token);
+                tokenManagementService.tokens.put(site.getApiLogin(), token);
                 Thread.sleep(1000 * 60 * 2);
 
             } catch (InterruptedException e) {

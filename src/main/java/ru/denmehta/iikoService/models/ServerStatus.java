@@ -9,13 +9,13 @@ import java.util.Map;
 @Data
 public class ServerStatus {
 
-    private ServerState state;
+//    private ServerState state;
 
     private List<Organization> organizations;
 
     private List<Terminal> terminals;
 
-    private Map<Site, String> tokens;
+    private Map<String, String> tokens;
 
 
 }

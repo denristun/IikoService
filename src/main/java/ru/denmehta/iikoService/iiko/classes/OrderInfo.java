@@ -6,7 +6,7 @@ public class OrderInfo {
 
     private String organizationId;
 
-    private int timestamp;
+    private long timestamp;
 
     private String creationStatus;
 
@@ -22,7 +22,7 @@ public class OrderInfo {
         return organizationId;
     }
 
-    public int getTimestamp() {
+    public long getTimestamp() {
         return timestamp;
     }
 

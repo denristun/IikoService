@@ -46,13 +46,14 @@ public class SiteController {
     public ResponseEntity<Site> updateSite(@RequestBody SiteRequestBody siteRequestBody,
                                                  @RequestHeader("Origin") String domain) {
 
-        String siteId = Optional.ofNullable(siteRequestBody.getSiteId()).orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "siteId is required"));
+        String siteId = Optional.ofNullable(siteRequestBody.getSiteId())
+                .orElseThrow(() -> new RestApiException(HttpStatus.BAD_REQUEST, "siteId is required"));
         Site site = siteService.getById(siteId);
         site.setActive(siteRequestBody.isActive());
         site.setApiLogin(siteRequestBody.getApiLogin());
         site.setDomain(siteRequestBody.getDomain());
         site.setToken(siteRequestBody.getToken());
-        this.siteService.save(site);
+        siteService.save(site);
 
         return new ResponseEntity<>(site, HttpStatus.OK);
 
@@ -68,7 +69,7 @@ public class SiteController {
         site.setApiLogin(siteRequestBody.getApiLogin());
         site.setDomain(siteRequestBody.getDomain());
         site.setToken(siteRequestBody.getToken());
-        this.siteService.save(site);
+        siteService.save(site);
 
         return new ResponseEntity<>(site, HttpStatus.OK);
 
